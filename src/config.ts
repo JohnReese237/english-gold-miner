@@ -1,5 +1,6 @@
 export type GameState =
   | "ready"
+  | "levelIntro"
   | "aiming"
   | "launching"
   | "hitSlowMotion"
@@ -209,16 +210,16 @@ export function pickWordForLevel(levelIndex: number, wordMode: WordMode, difficu
 
 const levelFiveMinerals: LevelConfig["minerals"] = [
   { typeId: "largeGold", x: 155, y: 410, radius: 52, label: "classroom" },
-  { typeId: "diamond", x: 365, y: 400, radius: 45, label: "It's spring." },
-  { typeId: "smallGold", x: 720, y: 430, radius: 38, label: "pencil" },
-  { typeId: "ruby", x: 535, y: 475, radius: 38, label: "I can sing and dance." },
+  { typeId: "diamond", x: 365, y: 400, radius: 23, label: "It's spring." },
+  { typeId: "smallGold", x: 720, y: 430, radius: 36, label: "pencil" },
+  { typeId: "ruby", x: 535, y: 475, radius: 18, label: "I can sing and dance." },
   { typeId: "largeGold", x: 905, y: 400, radius: 50, label: "teacher" },
   { typeId: "rock", x: 250, y: 620, radius: 48, label: "strong" },
-  { typeId: "ruby", x: 455, y: 625, radius: 38, label: "The room is clean." },
+  { typeId: "ruby", x: 455, y: 625, radius: 18, label: "The room is clean." },
   { typeId: "largeGold", x: 640, y: 555, radius: 52, label: "blackboard" },
-  { typeId: "diamond", x: 855, y: 610, radius: 43, label: "I go to school by bus." },
-  { typeId: "diamond", x: 1035, y: 365, radius: 43, label: "Let's make a kite." },
-  { typeId: "amethyst", x: 1110, y: 635, radius: 45, label: "This is my father. He is a driver." },
+  { typeId: "diamond", x: 855, y: 610, radius: 23, label: "I go to school by bus." },
+  { typeId: "diamond", x: 1035, y: 365, radius: 23, label: "Let's make a kite." },
+  { typeId: "amethyst", x: 1110, y: 635, radius: 22, label: "This is my father. He is a driver." },
   { typeId: "explosiveBarrel", x: 990, y: 455, radius: 34, label: "danger" },
   { typeId: "rock", x: 1040, y: 585, radius: 44, label: "beautiful" },
   { typeId: "largeGold", x: 1165, y: 470, radius: 50, label: "Chinese" },
@@ -250,11 +251,11 @@ export const config: GameConfig = {
     threshold: 50,
     smoothing: 0.85,
     factors: [
-      { label: "没声音", min: 0, multiplier: 0.3 },
-      { label: "小声", min: 0.18, multiplier: 0.8 },
-      { label: "正常", min: 0.38, multiplier: 1.3 },
-      { label: "大声", min: 0.62, multiplier: 2.2 },
-      { label: "很大声", min: 0.82, multiplier: 3.2 },
+      { label: "没声音", min: 0, multiplier: 0.25 },
+      { label: "小声", min: 0.18, multiplier: 0.6 },
+      { label: "正常", min: 0.38, multiplier: 1.0 },
+      { label: "大声", min: 0.62, multiplier: 1.6 },
+      { label: "很大声", min: 0.82, multiplier: 2.2 },
     ],
   },
   items: [
@@ -265,20 +266,20 @@ export const config: GameConfig = {
     { id: "gemDrill", name: "宝石钻头", price: 350, icon: "✦", description: "本关可抓宝石、钻石、金矿和石头" },
   ],
   minerals: [
-    { id: "smallGold", category: "gold", name: "小金块", score: 50, weight: "轻", basePullSpeed: 170, radius: 36, color: "#ffd542" },
-    { id: "largeGold", category: "gold", name: "大金块", score: 150, weight: "重", basePullSpeed: 86, radius: 52, color: "#ffc328" },
-    { id: "diamond", category: "diamond", name: "钻石", score: 250, weight: "中等", basePullSpeed: 128, radius: 45, color: "#26d8ff" },
-    { id: "ruby", category: "gem", name: "红宝石", score: 300, weight: "中等", basePullSpeed: 120, radius: 36, color: "#ff3a35" },
-    { id: "amethyst", category: "gem", name: "紫宝石", score: 350, weight: "偏重", basePullSpeed: 102, radius: 43, color: "#9c57ff" },
-    { id: "rock", category: "rock", name: "石头", score: 10, weight: "很重", basePullSpeed: 54, radius: 46, color: "#8d8173" },
-    { id: "explosiveBarrel", category: "explosive", name: "炸药桶", score: 0, weight: "危险", basePullSpeed: 145, radius: 34, color: "#d64227" },
+    { id: "smallGold", category: "gold", name: "小金块", score: 50, weight: "轻", basePullSpeed: 140, radius: 36, color: "#ffd542" },
+    { id: "largeGold", category: "gold", name: "大金块", score: 150, weight: "重", basePullSpeed: 55, radius: 52, color: "#ffc328" },
+    { id: "diamond", category: "diamond", name: "钻石", score: 250, weight: "中等", basePullSpeed: 90, radius: 23, color: "#26d8ff" },
+    { id: "ruby", category: "gem", name: "红宝石", score: 300, weight: "中等", basePullSpeed: 85, radius: 18, color: "#ff3a35" },
+    { id: "amethyst", category: "gem", name: "紫宝石", score: 350, weight: "偏重", basePullSpeed: 70, radius: 22, color: "#9c57ff" },
+    { id: "rock", category: "rock", name: "石头", score: 10, weight: "很重", basePullSpeed: 25, radius: 46, color: "#8d8173" },
+    { id: "explosiveBarrel", category: "explosive", name: "炸药桶", score: 0, weight: "危险", basePullSpeed: 130, radius: 34, color: "#d64227" },
   ],
   levels: [
     {
       id: 1,
       name: "练习关",
       durationSeconds: 60,
-      targetGold: 520,
+      targetGold: 650,
       wordMode: "words",
       shopItems: ["dynamite", "strengthWater", "clover"],
       minerals: [
@@ -296,7 +297,7 @@ export const config: GameConfig = {
       id: 2,
       name: "石头出现",
       durationSeconds: 60,
-      targetGold: 600,
+      targetGold: 850,
       wordMode: "words",
       shopItems: ["dynamite", "strengthWater", "clover"],
       minerals: [
@@ -316,7 +317,7 @@ export const config: GameConfig = {
       id: 3,
       name: "钻石关",
       durationSeconds: 60,
-      targetGold: 950,
+      targetGold: 1300,
       wordMode: "mixed",
       shopItems: ["dynamite", "strengthWater", "clover", "diamondDrill"],
       minerals: [
@@ -337,7 +338,7 @@ export const config: GameConfig = {
       id: 4,
       name: "炸药桶",
       durationSeconds: 60,
-      targetGold: 990,
+      targetGold: 1600,
       wordMode: "mixed",
       shopItems: ["dynamite", "strengthWater", "clover", "diamondDrill"],
       minerals: [
@@ -358,7 +359,7 @@ export const config: GameConfig = {
       id: 5,
       name: "宝石关",
       durationSeconds: 60,
-      targetGold: 1540,
+      targetGold: 2200,
       wordMode: "mixed",
       shopItems: ["dynamite", "strengthWater", "clover", "diamondDrill", "gemDrill"],
       minerals: levelFiveMinerals,
@@ -367,7 +368,7 @@ export const config: GameConfig = {
       id: 6,
       name: "限时挑战",
       durationSeconds: 45,
-      targetGold: 1650,
+      targetGold: 2600,
       wordMode: "mixed",
       shopItems: ["dynamite", "strengthWater", "clover", "diamondDrill", "gemDrill"],
       minerals: levelFiveMinerals,

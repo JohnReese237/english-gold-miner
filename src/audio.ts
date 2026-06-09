@@ -1,7 +1,9 @@
 let audioCtx: AudioContext | null = null;
 let masterGain: GainNode | null = null;
+let musicGain: GainNode | null = null;
 let musicPlaying = false;
 let musicTimer: ReturnType<typeof setTimeout> | null = null;
+const musicNodes: OscillatorNode[] = [];
 
 function ctx(): AudioContext {
   if (!audioCtx) {
@@ -9,6 +11,9 @@ function ctx(): AudioContext {
     masterGain = audioCtx.createGain();
     masterGain.gain.value = 0.45;
     masterGain.connect(audioCtx.destination);
+    musicGain = audioCtx.createGain();
+    musicGain.gain.value = 0.32;
+    musicGain.connect(masterGain);
   }
   if (audioCtx.state === "suspended") {
     audioCtx.resume();
@@ -19,6 +24,11 @@ function ctx(): AudioContext {
 function out(): GainNode {
   ctx();
   return masterGain!;
+}
+
+function musicOut(): GainNode {
+  ctx();
+  return musicGain!;
 }
 
 function note(
@@ -260,9 +270,14 @@ function playMusicLoop() {
   padGain.gain.setValueAtTime(0.04, t + loopDuration - 0.5);
   padGain.gain.linearRampToValueAtTime(0, t + loopDuration);
   padOsc.connect(padGain);
-  padGain.connect(out());
+  padGain.connect(musicOut());
   padOsc.start(t);
   padOsc.stop(t + loopDuration + 0.05);
+  musicNodes.push(padOsc);
+  padOsc.onended = () => {
+    const idx = musicNodes.indexOf(padOsc);
+    if (idx >= 0) musicNodes.splice(idx, 1);
+  };
 
   musicTimer = setTimeout(playMusicLoop, loopDuration * 1000 - 50);
 }
@@ -287,14 +302,20 @@ function playMusicNote(
   gain.gain.setValueAtTime(volume, startTime + duration - release);
   gain.gain.linearRampToValueAtTime(0, startTime + duration);
   osc.connect(gain);
-  gain.connect(out());
+  gain.connect(musicOut());
   osc.start(startTime);
   osc.stop(startTime + duration + 0.05);
+  musicNodes.push(osc);
+  osc.onended = () => {
+    const idx = musicNodes.indexOf(osc);
+    if (idx >= 0) musicNodes.splice(idx, 1);
+  };
 }
 
 export function startMusic() {
   if (musicPlaying) return;
   musicPlaying = true;
+  musicNodes.length = 0;
   playMusicLoop();
 }
 
@@ -304,6 +325,11 @@ export function stopMusic() {
     clearTimeout(musicTimer);
     musicTimer = null;
   }
+  // Immediately kill all scheduled music oscillators
+  for (const osc of musicNodes) {
+    try { osc.stop(); } catch { /* already stopped */ }
+  }
+  musicNodes.length = 0;
 }
 
 export function setMasterVolume(vol: number) {

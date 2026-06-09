@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { config, DrillMode, GameState, ItemId, LevelConfig, MineralInstance, MineralShape, pickWordForLevel, mineralDifficulty } from "./config";
 import { initAudioOnInteraction, playClick, playCollect, playExplosion, playFail, playHit, playItemUse, playLaunch, playLevelComplete, playShopBuy, setMasterVolume, startMusic, stopMusic } from "./audio";
 
@@ -94,13 +94,40 @@ const emptyInventory = (): Inventory => ({
   gemDrill: 0,
 });
 
-const initialMinerals = (level: LevelConfig): MineralInstance[] =>
-  level.minerals.map((mineral, index) => ({
-    ...mineral,
-    id: index + 1,
-    collected: false,
-    hooked: false,
-  }));
+const initialMinerals = (level: LevelConfig): MineralInstance[] => {
+  const placed: Array<{ x: number; y: number; radius: number }> = [];
+  return level.minerals.map((mineral, index) => {
+    const typeRadius = mineralById(mineral.typeId).radius;
+    // Random position within the soil area, avoiding overlaps
+    let x: number;
+    let y: number;
+    let attempts = 0;
+    const minY = config.stageTop + 60;
+    const maxY = config.height - 50;
+    const minX = 60;
+    const maxX = config.width - 60;
+    do {
+      x = minX + Math.random() * (maxX - minX);
+      y = minY + Math.random() * (maxY - minY);
+      attempts++;
+      // Check overlap with already-placed minerals
+      const overlaps = placed.some(
+        (p) => Math.hypot(p.x - x, p.y - y) < p.radius + typeRadius + 20,
+      );
+      if (!overlaps || attempts > 200) break;
+    } while (true);
+    placed.push({ x, y, radius: typeRadius });
+    return {
+      ...mineral,
+      id: index + 1,
+      collected: false,
+      hooked: false,
+      radius: typeRadius,
+      x,
+      y,
+    };
+  });
+};
 
 const mineralById = (id: MineralShape) => config.minerals.find((mineral) => mineral.id === id)!;
 const itemById = (id: ItemId) => config.items.find((item) => item.id === id)!;
@@ -231,7 +258,8 @@ function App() {
   const [cloverActive, setCloverActiveState] = useState(false);
   const [boostActive, setBoostActiveState] = useState(false);
   const [manualBoostActive, setManualBoostActive] = useState(false);
-  const [, setAssetLoadTick] = useState(0);
+  const [loadedAssetCount, setAssetLoadTick] = useState(0);
+  const totalAssetCount = Object.keys(assetSources).length;
   const [lastAction, setLastAction] = useState("");
   const [paused, setPaused] = useState(false);
   const pausedRef = useRef(false);
@@ -265,10 +293,13 @@ function App() {
   };
 
   const togglePause = () => {
-    if (["shop", "success", "failed", "levelComplete"].includes(gameStateRef.current)) return;
+    if (["levelIntro", "shop", "success", "failed", "levelComplete"].includes(gameStateRef.current)) return;
     setPaused((prev) => {
-      pausedRef.current = !prev;
-      return !prev;
+      const next = !prev;
+      pausedRef.current = next;
+      if (next) stopMusic();
+      else startMusic();
+      return next;
     });
   };
 
@@ -309,6 +340,10 @@ function App() {
       image.onload = () => {
         if (cancelled) return;
         imageAssetsRef.current[key] = image;
+        setAssetLoadTick((value) => value + 1);
+      };
+      image.onerror = () => {
+        if (cancelled) return;
         setAssetLoadTick((value) => value + 1);
       };
       image.src = source;
@@ -362,8 +397,7 @@ function App() {
         gold: goldRef.current,
         inventory: { ...inventoryRef.current },
       };
-      startMusic();
-      setGameState("aiming");
+      setGameState("levelIntro");
     },
     [pickWord, setGameState],
   );
@@ -405,17 +439,27 @@ function App() {
     setGameState("aiming");
   }, [setGameState]);
 
+  const startLevel = useCallback(() => {
+    if (gameStateRef.current !== "levelIntro") return;
+    startMusic();
+    setGameState("aiming");
+  }, [setGameState]);
+
   const launchHook = useCallback(() => {
     initAudioOnInteraction();
     if (gameStateRef.current === "ready") {
       startMusic();
-      beginAiming();
+      startLevel();
+      return;
+    }
+    if (gameStateRef.current === "levelIntro") {
+      startLevel();
       return;
     }
     if (gameStateRef.current !== "aiming") return;
     playLaunch();
     setGameState("launching");
-  }, [beginAiming, setGameState]);
+  }, [beginAiming, setGameState, startLevel]);
 
   const toggleTestMode = (enabled: boolean) => {
     settingsRef.current.testMode = enabled;
@@ -443,8 +487,7 @@ function App() {
   const buyItem = (itemId: ItemId) => {
     if (gameStateRef.current !== "shop") return;
     const item = itemById(itemId);
-    const totalPurchases = Object.values(shopPurchases).reduce((sum, value) => sum + value, 0);
-    if (totalPurchases >= 2 || goldRef.current < item.price || !shopLevel.shopItems.includes(itemId)) return;
+    if (goldRef.current < item.price || !shopLevel.shopItems.includes(itemId)) return;
     playShopBuy();
     setGoldValue(goldRef.current - item.price);
     setInventoryValue({ ...inventoryRef.current, [itemId]: inventoryRef.current[itemId] + 1 });
@@ -557,13 +600,15 @@ function App() {
   }, []);
 
   useEffect(() => {
-    loadLevel(0);
-  }, [loadLevel]);
+    if (loadedAssetCount >= totalAssetCount) {
+      loadLevel(0);
+    }
+  }, [loadLevel, loadedAssetCount, totalAssetCount]);
 
   useEffect(() => {
     const timer = window.setInterval(() => {
       setTimeLeft((previous) => {
-        if (settingsOpenRef.current || pausedRef.current || ["shop", "success", "failed", "levelComplete"].includes(gameStateRef.current)) {
+        if (settingsOpenRef.current || pausedRef.current || ["levelIntro", "shop", "success", "failed", "levelComplete"].includes(gameStateRef.current)) {
           return previous;
         }
         const next = Math.max(0, previous - 1);
@@ -1433,10 +1478,6 @@ function App() {
     ctx.restore();
   };
 
-  const visibleMinerals = useMemo(
-    () => mineralsRef.current.filter((mineral) => !mineral.collected).length,
-    [mineralsVersion],
-  );
   const hookedType = hookedMineralRef.current ? mineralById(hookedMineralRef.current.typeId) : null;
   const hookedScore = hookedMineralRef.current ? scoreFor(hookedMineralRef.current) : 0;
   const gameOver = gameState === "success" || gameState === "failed";
@@ -1447,12 +1488,25 @@ function App() {
   const canManualBoost = audioState.testMode && gameState === "pulling";
   const activeDrillLabel =
     activeDrill === "gem" ? "宝石钻头" : activeDrill === "diamond" ? "金刚石钻头" : "强化铁钩";
-  const totalShopPurchases = Object.values(shopPurchases).reduce((sum, value) => sum + value, 0);
-
   return (
     <main className="page-shell">
       <section className="game-frame" aria-label="英语黄金矿工游戏">
         <canvas ref={canvasRef} width={config.width} height={config.height} />
+
+        {loadedAssetCount < totalAssetCount && (
+          <div className="loading-overlay">
+            <div className="loading-box">
+              <h2>🎮 加载中...</h2>
+              <div className="loading-bar-track">
+                <div
+                  className="loading-bar-fill"
+                  style={{ width: `${Math.round((loadedAssetCount / totalAssetCount) * 100)}%` }}
+                />
+              </div>
+              <p>{loadedAssetCount} / {totalAssetCount}</p>
+            </div>
+          </div>
+        )}
 
         <div className="hud">
           <div className="hud-card level-card">
@@ -1568,11 +1622,6 @@ function App() {
           </button>
         )}
 
-        <div className="status-pill">
-          <span>{stateText(gameState)}</span>
-          <small>剩余矿物 {visibleMinerals}</small>
-        </div>
-
         {lastAction && gameState !== "shop" && gameState !== "failed" && gameState !== "success" && (
           <div className="action-toast">{lastAction}</div>
         )}
@@ -1590,13 +1639,12 @@ function App() {
               <div className="shop-header">
                 <h2>第 {shopLevel.id} 关商店</h2>
                 <span>金币 {gold}</span>
-                <small>已选 {totalShopPurchases} / 2</small>
               </div>
               <div className="shop-grid">
                 {shopLevel.shopItems.map((itemId) => {
                   const item = itemById(itemId);
                   const purchased = shopPurchases[item.id] > 0;
-                  const disabled = !purchased && (totalShopPurchases >= 2 || gold < item.price);
+                  const disabled = !purchased && gold < item.price;
                   return (
                     <button
                       className={`shop-item ${purchased ? "purchased" : ""}`}
@@ -1617,6 +1665,34 @@ function App() {
               <button className="close-button" type="button" onClick={enterShopLevel}>
                 进入第 {shopLevel.id} 关
               </button>
+            </div>
+          </div>
+        )}
+
+        {gameState === "levelIntro" && (
+          <div className="intro-overlay">
+            <div className="intro-panel">
+              <h2>
+                第 {currentLevel.id} 关
+                <span className="intro-name">{currentLevel.name}</span>
+              </h2>
+              <div className="intro-info">
+                <div className="intro-stat">
+                  <span>⏱ 时间</span>
+                  <strong>{currentLevel.durationSeconds} 秒</strong>
+                </div>
+                <div className="intro-stat">
+                  <span>🎯 目标</span>
+                  <strong>{currentLevel.targetGold} 金币</strong>
+                </div>
+              </div>
+              {currentLevel.id > 1 && (
+                <p className="intro-gold">当前金币：{gold}</p>
+              )}
+              <button className="intro-start-btn" type="button" onClick={startLevel} autoFocus>
+                开始游戏
+              </button>
+              <p className="intro-hint">按空格键或点击按钮开始</p>
             </div>
           </div>
         )}
@@ -1720,23 +1796,6 @@ function App() {
       </section>
     </main>
   );
-}
-
-function stateText(state: GameState) {
-  const labels: Record<GameState, string> = {
-    ready: "准备",
-    aiming: "瞄准中",
-    launching: "放钩中",
-    hitSlowMotion: "命中",
-    wordShuffle: "选词中",
-    pulling: "朗读拉矿",
-    scoring: "结算",
-    levelComplete: "过关",
-    shop: "商店",
-    success: "成功",
-    failed: "失败",
-  };
-  return labels[state];
 }
 
 export default App;
