@@ -12,11 +12,39 @@ export type GameState =
   | "success"
   | "failed";
 
-export type MineralShape = "smallGold" | "largeGold" | "diamond" | "ruby" | "amethyst" | "rock" | "explosiveBarrel";
-export type MineralCategory = "gold" | "diamond" | "gem" | "rock" | "explosive";
+export type MineralShape =
+  | "smallGold"
+  | "largeGold"
+  | "diamond"
+  | "ruby"
+  | "amethyst"
+  | "mysteryBag"
+  | "crystal"
+  | "moleBag"
+  | "emerald"
+  | "sapphire"
+  | "rock"
+  | "explosiveBarrel";
+export type MineralCategory = "gold" | "diamond" | "gem" | "mystery" | "creature" | "rock" | "explosive";
 export type WordMode = "words" | "mixed";
-export type ItemId = "dynamite" | "strengthWater" | "clover" | "diamondDrill" | "gemDrill";
-export type DrillMode = "normal" | "diamond" | "gem";
+export type ItemId = "dynamite" | "strengthWater" | "clover" | "heatShield";
+export type BackgroundKey = "normal" | "gem" | "core";
+
+export interface MineralMotion {
+  minX: number;
+  maxX: number;
+  speed: number;
+  direction: 1 | -1;
+}
+
+export interface ThiefConfig {
+  intervalSeconds: number;
+  minSteal: number;
+  maxSteal: number;
+  percent: number;
+  laneY: number;
+  runDurationMs: number;
+}
 
 export interface MineralTypeConfig {
   id: MineralShape;
@@ -38,6 +66,11 @@ export interface MineralInstance {
   label: string;
   collected: boolean;
   hooked: boolean;
+  scoreOverride?: number;
+  weightOverride?: string;
+  basePullSpeedOverride?: number;
+  motion?: MineralMotion;
+  restY?: number;
 }
 
 export interface LevelConfig {
@@ -47,6 +80,9 @@ export interface LevelConfig {
   targetGold: number;
   wordMode: WordMode;
   shopItems: ItemId[];
+  backgroundKey?: BackgroundKey;
+  heatPullMultiplier?: number;
+  thiefConfig?: ThiefConfig;
   minerals: Array<Omit<MineralInstance, "id" | "collected" | "hooked">>;
 }
 
@@ -166,8 +202,13 @@ export function mineralDifficulty(typeId: MineralShape): WordDifficulty {
       return "medium";
     case "diamond":
     case "ruby":
+    case "crystal":
+    case "mysteryBag":
+    case "moleBag":
       return "hard";
     case "amethyst":
+    case "emerald":
+    case "sapphire":
       return "hard";
     case "rock":
       return "medium";
@@ -225,6 +266,85 @@ const levelFiveMinerals: LevelConfig["minerals"] = [
   { typeId: "largeGold", x: 1165, y: 470, radius: 50, label: "Chinese" },
 ];
 
+const levelSevenMinerals: LevelConfig["minerals"] = [
+  { typeId: "largeGold", x: 150, y: 410, radius: 52, label: "classroom" },
+  { typeId: "mysteryBag", x: 330, y: 455, radius: 34, label: "mystery" },
+  { typeId: "crystal", x: 520, y: 410, radius: 24, label: "It's yummy." },
+  { typeId: "ruby", x: 715, y: 455, radius: 18, label: "I like spring." },
+  { typeId: "diamond", x: 935, y: 420, radius: 23, label: "Touch your head." },
+  { typeId: "rock", x: 245, y: 620, radius: 46, label: "strong" },
+  { typeId: "amethyst", x: 455, y: 620, radius: 22, label: "The room is clean." },
+  { typeId: "mysteryBag", x: 650, y: 585, radius: 34, label: "lucky" },
+  { typeId: "largeGold", x: 840, y: 610, radius: 52, label: "teacher" },
+  { typeId: "explosiveBarrel", x: 990, y: 475, radius: 34, label: "danger" },
+  { typeId: "crystal", x: 1100, y: 610, radius: 24, label: "Let's make a card." },
+  { typeId: "rock", x: 1160, y: 470, radius: 44, label: "beautiful" },
+];
+
+const levelEightMinerals: LevelConfig["minerals"] = [
+  { typeId: "moleBag", x: 165, y: 425, radius: 36, label: "move", motion: { minX: 90, maxX: 360, speed: 70, direction: 1 } },
+  { typeId: "mysteryBag", x: 360, y: 450, radius: 34, label: "lucky" },
+  { typeId: "crystal", x: 545, y: 415, radius: 24, label: "This is my room." },
+  { typeId: "diamond", x: 760, y: 430, radius: 23, label: "I can draw." },
+  { typeId: "ruby", x: 975, y: 425, radius: 18, label: "I want noodles." },
+  { typeId: "smallGold", x: 1120, y: 500, radius: 36, label: "bus" },
+  { typeId: "rock", x: 245, y: 620, radius: 48, label: "pretty" },
+  { typeId: "moleBag", x: 500, y: 620, radius: 36, label: "help", motion: { minX: 375, maxX: 700, speed: 86, direction: -1 } },
+  { typeId: "amethyst", x: 725, y: 610, radius: 22, label: "I go to school by bus." },
+  { typeId: "mysteryBag", x: 915, y: 600, radius: 34, label: "sweet" },
+  { typeId: "explosiveBarrel", x: 1035, y: 500, radius: 34, label: "danger" },
+  { typeId: "rock", x: 1130, y: 620, radius: 46, label: "season" },
+];
+
+const levelNineMinerals: LevelConfig["minerals"] = [
+  { typeId: "emerald", x: 150, y: 425, radius: 22, label: "This is my classroom." },
+  { typeId: "sapphire", x: 330, y: 455, radius: 22, label: "I can play football." },
+  { typeId: "crystal", x: 520, y: 410, radius: 24, label: "Show me your kite." },
+  { typeId: "mysteryBag", x: 705, y: 455, radius: 34, label: "lucky" },
+  { typeId: "moleBag", x: 930, y: 420, radius: 36, label: "dance", motion: { minX: 790, maxX: 1160, speed: 92, direction: 1 } },
+  { typeId: "diamond", x: 1120, y: 510, radius: 23, label: "Let's make a kite." },
+  { typeId: "rock", x: 240, y: 610, radius: 48, label: "angry" },
+  { typeId: "amethyst", x: 450, y: 625, radius: 22, label: "The sheep is on the grass." },
+  { typeId: "largeGold", x: 635, y: 585, radius: 50, label: "mother" },
+  { typeId: "emerald", x: 835, y: 620, radius: 22, label: "This is my father. He is a driver." },
+  { typeId: "explosiveBarrel", x: 995, y: 480, radius: 34, label: "danger" },
+  { typeId: "sapphire", x: 1120, y: 640, radius: 22, label: "This is my mother. She is a doctor." },
+  { typeId: "rock", x: 1185, y: 445, radius: 44, label: "clean" },
+];
+
+const levelTenMinerals: LevelConfig["minerals"] = [
+  { typeId: "sapphire", x: 165, y: 425, radius: 22, label: "I go to school by bus." },
+  { typeId: "mysteryBag", x: 330, y: 455, radius: 34, label: "lucky" },
+  { typeId: "rock", x: 520, y: 410, radius: 48, label: "strong" },
+  { typeId: "emerald", x: 700, y: 450, radius: 22, label: "The room is tidy." },
+  { typeId: "moleBag", x: 935, y: 425, radius: 36, label: "kick", motion: { minX: 800, maxX: 1170, speed: 105, direction: -1 } },
+  { typeId: "explosiveBarrel", x: 1090, y: 510, radius: 34, label: "danger" },
+  { typeId: "crystal", x: 245, y: 615, radius: 24, label: "I can sing and dance." },
+  { typeId: "rock", x: 455, y: 625, radius: 48, label: "beautiful" },
+  { typeId: "amethyst", x: 645, y: 585, radius: 22, label: "I like winter." },
+  { typeId: "mysteryBag", x: 835, y: 620, radius: 34, label: "sweet" },
+  { typeId: "diamond", x: 995, y: 465, radius: 23, label: "Let's make a card." },
+  { typeId: "rock", x: 1130, y: 635, radius: 46, label: "season" },
+  { typeId: "explosiveBarrel", x: 1190, y: 480, radius: 34, label: "danger" },
+];
+
+const levelElevenMinerals: LevelConfig["minerals"] = [
+  { typeId: "emerald", x: 150, y: 430, radius: 22, label: "This is my room." },
+  { typeId: "sapphire", x: 325, y: 455, radius: 22, label: "This is my classroom." },
+  { typeId: "rock", x: 505, y: 420, radius: 50, label: "strong" },
+  { typeId: "crystal", x: 700, y: 450, radius: 24, label: "I can see sheep." },
+  { typeId: "moleBag", x: 930, y: 425, radius: 36, label: "move", motion: { minX: 780, maxX: 1175, speed: 116, direction: 1 } },
+  { typeId: "explosiveBarrel", x: 1100, y: 500, radius: 34, label: "danger" },
+  { typeId: "mysteryBag", x: 245, y: 610, radius: 34, label: "lucky" },
+  { typeId: "diamond", x: 430, y: 625, radius: 23, label: "Let's make a kite." },
+  { typeId: "amethyst", x: 620, y: 590, radius: 22, label: "The chicken is on the farm." },
+  { typeId: "rock", x: 820, y: 615, radius: 50, label: "pretty" },
+  { typeId: "ruby", x: 990, y: 610, radius: 18, label: "I want an apple." },
+  { typeId: "sapphire", x: 1110, y: 635, radius: 22, label: "This is my mother. She is a doctor." },
+  { typeId: "explosiveBarrel", x: 1180, y: 470, radius: 34, label: "danger" },
+  { typeId: "moleBag", x: 615, y: 500, radius: 36, label: "turn", motion: { minX: 420, maxX: 760, speed: 95, direction: -1 } },
+];
+
 export const config: GameConfig = {
   width: 1280,
   height: 720,
@@ -262,8 +382,7 @@ export const config: GameConfig = {
     { id: "dynamite", name: "炸药", price: 120, icon: "💣", description: "误抓石头时炸毁它" },
     { id: "strengthWater", name: "大力水", price: 180, icon: "💪", description: "本次拉回速度翻倍" },
     { id: "clover", name: "幸运三叶草", price: 220, icon: "☘", description: "本关所有物品价值+30%" },
-    { id: "diamondDrill", name: "金刚石钻头", price: 300, icon: "◆", description: "本关可抓钻石、金矿和石头" },
-    { id: "gemDrill", name: "宝石钻头", price: 350, icon: "✦", description: "本关可抓宝石、钻石、金矿和石头" },
+    { id: "heatShield", name: "防护罩", price: 420, icon: "◉", description: "本关免疫高温和偷金币" },
   ],
   minerals: [
     { id: "smallGold", category: "gold", name: "小金块", score: 50, weight: "轻", basePullSpeed: 140, radius: 36, color: "#ffd542" },
@@ -271,6 +390,11 @@ export const config: GameConfig = {
     { id: "diamond", category: "diamond", name: "钻石", score: 250, weight: "中等", basePullSpeed: 90, radius: 23, color: "#26d8ff" },
     { id: "ruby", category: "gem", name: "红宝石", score: 300, weight: "中等", basePullSpeed: 85, radius: 18, color: "#ff3a35" },
     { id: "amethyst", category: "gem", name: "紫宝石", score: 350, weight: "偏重", basePullSpeed: 70, radius: 22, color: "#9c57ff" },
+    { id: "mysteryBag", category: "mystery", name: "神秘袋子", score: 180, weight: "随机", basePullSpeed: 85, radius: 34, color: "#c9853a" },
+    { id: "crystal", category: "gem", name: "水晶", score: 300, weight: "中等", basePullSpeed: 82, radius: 24, color: "#b8fbff" },
+    { id: "moleBag", category: "creature", name: "背袋鼹鼠", score: 220, weight: "随机", basePullSpeed: 95, radius: 36, color: "#8b5736" },
+    { id: "emerald", category: "gem", name: "祖母绿", score: 480, weight: "偏重", basePullSpeed: 62, radius: 22, color: "#23d56f" },
+    { id: "sapphire", category: "gem", name: "蓝宝石", score: 520, weight: "偏重", basePullSpeed: 58, radius: 22, color: "#246bff" },
     { id: "rock", category: "rock", name: "石头", score: 10, weight: "很重", basePullSpeed: 25, radius: 46, color: "#8d8173" },
     { id: "explosiveBarrel", category: "explosive", name: "炸药桶", score: 0, weight: "危险", basePullSpeed: 130, radius: 34, color: "#d64227" },
   ],
@@ -319,7 +443,7 @@ export const config: GameConfig = {
       durationSeconds: 60,
       targetGold: 1300,
       wordMode: "mixed",
-      shopItems: ["dynamite", "strengthWater", "clover", "diamondDrill"],
+      shopItems: ["dynamite", "strengthWater", "clover"],
       minerals: [
         { typeId: "largeGold", x: 165, y: 430, radius: 52, label: "blackboard" },
         { typeId: "diamond", x: 365, y: 405, radius: 45, label: "It's spring." },
@@ -340,7 +464,7 @@ export const config: GameConfig = {
       durationSeconds: 60,
       targetGold: 1600,
       wordMode: "mixed",
-      shopItems: ["dynamite", "strengthWater", "clover", "diamondDrill"],
+      shopItems: ["dynamite", "strengthWater", "clover"],
       minerals: [
         { typeId: "largeGold", x: 155, y: 420, radius: 52, label: "dinner" },
         { typeId: "diamond", x: 365, y: 400, radius: 45, label: "I go to school by bus." },
@@ -361,7 +485,7 @@ export const config: GameConfig = {
       durationSeconds: 60,
       targetGold: 2200,
       wordMode: "mixed",
-      shopItems: ["dynamite", "strengthWater", "clover", "diamondDrill", "gemDrill"],
+      shopItems: ["dynamite", "strengthWater", "clover"],
       minerals: levelFiveMinerals,
     },
     {
@@ -370,8 +494,60 @@ export const config: GameConfig = {
       durationSeconds: 45,
       targetGold: 2600,
       wordMode: "mixed",
-      shopItems: ["dynamite", "strengthWater", "clover", "diamondDrill", "gemDrill"],
+      shopItems: ["dynamite", "strengthWater", "clover"],
       minerals: levelFiveMinerals,
+    },
+    {
+      id: 7,
+      name: "神秘矿洞",
+      durationSeconds: 60,
+      targetGold: 3100,
+      wordMode: "mixed",
+      shopItems: ["dynamite", "strengthWater", "clover"],
+      minerals: levelSevenMinerals,
+    },
+    {
+      id: 8,
+      name: "背袋鼹鼠",
+      durationSeconds: 55,
+      targetGold: 3600,
+      wordMode: "mixed",
+      shopItems: ["dynamite", "strengthWater", "clover"],
+      minerals: levelEightMinerals,
+    },
+    {
+      id: 9,
+      name: "地心世界",
+      durationSeconds: 55,
+      targetGold: 4300,
+      wordMode: "mixed",
+      backgroundKey: "core",
+      shopItems: ["dynamite", "strengthWater", "clover"],
+      minerals: levelNineMinerals,
+    },
+    {
+      id: 10,
+      name: "高温矿脉",
+      durationSeconds: 55,
+      targetGold: 5000,
+      wordMode: "mixed",
+      backgroundKey: "core",
+      heatPullMultiplier: 0.72,
+      thiefConfig: { intervalSeconds: 10, minSteal: 60, maxSteal: 150, percent: 0.08, laneY: 276, runDurationMs: 4800 },
+      shopItems: ["dynamite", "strengthWater", "clover", "heatShield"],
+      minerals: levelTenMinerals,
+    },
+    {
+      id: 11,
+      name: "终极挑战",
+      durationSeconds: 45,
+      targetGold: 5600,
+      wordMode: "mixed",
+      backgroundKey: "core",
+      heatPullMultiplier: 0.72,
+      thiefConfig: { intervalSeconds: 10, minSteal: 60, maxSteal: 150, percent: 0.08, laneY: 276, runDurationMs: 4800 },
+      shopItems: ["dynamite", "strengthWater", "clover", "heatShield"],
+      minerals: levelElevenMinerals,
     },
   ],
 };
