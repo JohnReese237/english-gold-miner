@@ -788,6 +788,14 @@ canvas {
   font-weight: 900;
 }
 
+.result-box button {
+  margin-bottom: 10px;
+}
+
+.shop-fail-btn {
+  background: linear-gradient(180deg, #48d85f, #1e8a30) !important;
+}
+
 .shop-panel {
   width: min(720px, 92%);
 }

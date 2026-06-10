@@ -550,10 +550,15 @@ function App() {
   );
 
   const resetToLevel = (nextLevelIndex: number) => {
-    setGoldValue(0);
+    const targetLevel = config.levels[nextLevelIndex];
+    // Start with 65% of the target gold, then enter the shop first
+    const startingGold = Math.round(targetLevel.targetGold * 0.65);
+    setGoldValue(startingGold);
     setInventoryValue(emptyInventory());
+    setShopLevelIndex(nextLevelIndex);
     setShopPurchases(emptyInventory());
-    loadLevel(nextLevelIndex);
+    setSettingsOpen(false);
+    setGameState("shop");
   };
 
   const retryLevel = () => {
@@ -561,6 +566,15 @@ function App() {
     setGoldValue(snapshot.gold);
     setInventoryValue({ ...snapshot.inventory });
     loadLevel(levelIndexRef.current);
+  };
+
+  const goToShopFromFailure = () => {
+    const snapshot = levelStartSnapshotRef.current;
+    setGoldValue(snapshot.gold);
+    setInventoryValue({ ...snapshot.inventory });
+    setShopLevelIndex(levelIndexRef.current);
+    setShopPurchases(emptyInventory());
+    setGameState("shop");
   };
 
   const finishLevel = useCallback(() => {
@@ -2213,15 +2227,20 @@ function App() {
               <p>
                 金币 {gold} / {currentLevel.targetGold}
               </p>
-              <button
-                type="button"
-                onClick={() => {
-                  if (gameState === "failed") retryLevel();
-                  else resetToLevel(0);
-                }}
-              >
-                {gameState === "failed" ? "重玩本关" : "从第一关再玩"}
-              </button>
+              {gameState === "failed" ? (
+                <>
+                  <button type="button" className="shop-fail-btn" onClick={goToShopFromFailure}>
+                    去商店买道具
+                  </button>
+                  <button type="button" onClick={retryLevel}>
+                    直接重试
+                  </button>
+                </>
+              ) : (
+                <button type="button" onClick={() => resetToLevel(0)}>
+                  从第一关再玩
+                </button>
+              )}
             </div>
           </div>
         )}
