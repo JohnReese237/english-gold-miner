@@ -132,65 +132,86 @@ export interface GameConfig {
   levels: LevelConfig[];
 }
 
-const easyWords = [
-  "one", "two", "three", "four", "five", "six", "seven", "number",
-  "book", "pencil", "pen", "desk", "chair", "door", "window",
-  "head", "hand", "leg", "foot", "body",
-  "big", "old", "new", "tall", "fast",
-  "car", "bus", "plane", "train",
-  "apple", "cake", "food",
-  "home", "house", "room", "bed", "table", "sofa",
-  "sheep", "chicken", "grass", "farm",
-  "spring", "summer", "autumn", "winter", "snow",
-  "balloon", "robot", "kite", "hat", "card", "football",
-  "happy", "sad", "hungry", "tired",
-  "doctor", "nurse", "driver", "farmer", "worker", "student",
-  "red", "blue", "green", "yellow",
+// ── Unit-organized word data ──
+interface UnitWordData {
+  unit: number; // 1-6, 0 for phonics extras
+  name: string;
+  easy: string[];
+  medium: string[];
+  easySentences: string[];
+  hardSentences: string[];
+}
+
+const unitWordData: UnitWordData[] = [
+  {
+    unit: 1, name: "Go around",
+    easy: ["bus", "car", "train", "plane", "zoo", "school", "park", "farm", "beach"],
+    medium: ["by bus", "by car", "by train", "by plane", "look at", "Sanya", "Tianjin", "Harbin"],
+    easySentences: ["I go by bus.", "I go by car.", "I go by train.", "I go by plane.", "I go to the zoo.", "I go to school by car."],
+    hardSentences: ["It's spring. I go to the zoo. I go by bus.", "Three, two, one. Let's go!"],
+  },
+  {
+    unit: 2, name: "Jobs",
+    easy: ["doctor", "nurse", "driver", "farmer", "worker", "teacher", "job", "grandpa", "grandma", "dad", "mum"],
+    medium: ["jobs", "student"],
+    easySentences: ["This is my grandpa.", "This is my grandma.", "This is my dad.", "This is my mum.", "He is a doctor.", "She is a nurse.", "He is a driver.", "She is a farmer.", "He is a worker.", "I'm a driver."],
+    hardSentences: ["We love our jobs!", "This is my father. He is a driver.", "This is my mother. She is a doctor."],
+  },
+  {
+    unit: 3, name: "On the farm",
+    easy: ["cow", "chicken", "sheep", "tree", "flower", "grass", "feed", "field", "help", "yes"],
+    medium: ["welcome", "Let's feed"],
+    easySentences: ["Welcome, children!", "We have some grass."],
+    hardSentences: ["Let's feed them.", "Let's feed the cows and sheep!", "It has some trees.", "My farm has trees and grass."],
+  },
+  {
+    unit: 4, name: "In class",
+    easy: ["maths", "music", "art", "class", "like", "all", "run", "great", "Chinese", "English"],
+    medium: ["PE", "in class", "have", "show"],
+    easySentences: ["I have art and music.", "I like PE now.", "I like Chinese and PE.", "Let me show you.", "You can do it!"],
+    hardSentences: ["But I have PE. I don't like it.", "Chinese, English and maths. I like them all!", "I like them all!"],
+  },
+  {
+    unit: 5, name: "Fun time",
+    easy: ["sing", "dance", "draw", "swim", "jump", "kick", "can", "well"],
+    medium: ["football", "play football", "run fast", "do paper folding", "do tai chi", "play Chinese chess", "play the guzheng"],
+    easySentences: ["I can sing.", "I can dance.", "I can swim.", "I can draw.", "I can play football.", "Can you jump? Yes, I can.", "I can run fast.", "Good job!"],
+    hardSentences: ["What can you do?", "What can he do? He can draw.", "I can play football well."],
+  },
+  {
+    unit: 6, name: "My happy week",
+    easy: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday", "week", "paper", "box", "sorry"],
+    medium: ["every day", "on Monday", "draw pictures", "go to the zoo", "coloured paper", "boxes", "Here you are", "Thank you"],
+    easySentences: ["Let's go to the zoo.", "Thank you."],
+    hardSentences: ["Can I have some boxes?", "Can I have some coloured paper?", "Let's draw pictures on Thursday.", "Let's play football on Friday.", "Let's go to the zoo on Saturday.", "This is my week. On Monday, I have Chinese, PE, English and maths.", "Saturday and Sunday, time to play!"],
+  },
+  {
+    unit: 0, name: "Phonics",
+    easy: ["orange", "pen", "queen", "rabbit", "sister", "tiger", "window", "yellow", "mouth", "nose", "van", "umbrella", "new", "see"],
+    medium: [],
+    easySentences: [],
+    hardSentences: [],
+  },
 ];
 
-const mediumWords = [
-  "classroom", "teacher", "school", "blackboard",
-  "clean", "tidy", "amazing", "lucky", "yummy", "sweet", "strong",
-  "move", "kick", "draw", "dance", "sing", "read", "open", "look",
-  "help", "show", "make", "turn",
-  "dinner", "noodle", "angry", "season",
-  "Chinese", "queen", "child", "very", "some", "many",
-  "please", "thank", "live", "next", "by",
-  "basketball", "mother", "father", "sister", "brother",
-  "orange", "banana", "milk", "water", "rice",
-  "cold", "hot", "pretty", "beautiful",
-];
+// Derived flat arrays (kept for backward compatibility)
+const easyWords = unitWordData.flatMap((u) => u.easy);
+const mediumWords = unitWordData.flatMap((u) => u.medium);
+const easySentences = unitWordData.flatMap((u) => u.easySentences);
+const hardSentences = unitWordData.flatMap((u) => u.hardSentences);
 
-const easySentences = [
-  "It's a book.", "It's a pencil.", "It's a desk.", "It's a kite.",
-  "What's this?", "I can run.", "I can sing.", "I can dance.",
-  "I can draw.", "I can read.", "I'm hungry.", "I'm happy.",
-  "I'm sad.", "I'm tired.", "I'm angry.", "I like apples.",
-  "I like cake.", "I like football.", "I want noodles.", "I want cake.",
-  "He is a doctor.", "She is a nurse.", "He is a driver.",
-  "She is a farmer.", "He is a worker.", "I am a student.",
-  "I go by bus.", "I go by car.", "I go by plane.", "I go by train.",
-  "Open your book.", "Look at the blackboard.", "Hello.", "Thank you.",
-  "It's big.", "It's new.", "It's old.", "She is tall.", "He is strong.",
-];
+// Word-to-unit lookup map
+const wordUnitMap = new Map<string, number>();
+for (const unit of unitWordData) {
+  for (const w of unit.easy) wordUnitMap.set(w, unit.unit);
+  for (const w of unit.medium) wordUnitMap.set(w, unit.unit);
+  for (const w of unit.easySentences) wordUnitMap.set(w, unit.unit);
+  for (const w of unit.hardSentences) wordUnitMap.set(w, unit.unit);
+}
 
-const hardSentences = [
-  "This is my room.", "This is my home.", "This is my classroom.",
-  "The room is clean.", "The room is tidy.",
-  "I can play football.", "I like spring.", "I like summer.",
-  "It's spring.", "It's winter.", "It's snowing.",
-  "Let's make a card.", "Let's make a kite.",
-  "Show me your card.", "Show me your kite.",
-  "I go to school by bus.", "Touch your head.", "Move your hand.",
-  "I can see sheep.", "I can see chickens.", "This is a farm.",
-  "It's yummy.", "It's sweet.", "It's very big.",
-  "The sheep is on the grass.", "The chicken is on the farm.",
-  "I can sing and dance.", "This is my father. He is a driver.",
-  "This is my mother. She is a doctor.",
-  "I want an apple.", "I want a kite.",
-  "This is my head. This is my hand.",
-  "I like winter.", "I go to school by bus.",
-];
+function getWordUnit(word: string): number {
+  return wordUnitMap.get(word) ?? 0;
+}
 
 export type WordDifficulty = "easy" | "medium" | "hard";
 
@@ -230,15 +251,69 @@ export function levelWordPool(levelIndex: number, wordMode: WordMode): string[] 
   return [...mediumWords, ...easySentences, ...hardSentences];
 }
 
-function pickFromPool(pool: string[], preferredDifficulty: WordDifficulty): string {
-  // Weight: 60% preferred, 40% any from pool
-  const preferred = pool.filter((w) => {
-    if (preferredDifficulty === "easy") return easyWords.includes(w);
-    if (preferredDifficulty === "medium") return mediumWords.includes(w) || easySentences.includes(w);
-    return hardSentences.includes(w) || easySentences.includes(w);
-  });
-  const source = preferred.length > 0 && Math.random() < 0.6 ? preferred : pool;
-  return source[Math.floor(Math.random() * source.length)];
+// ── Word Picker: ensures no repeats + six-unit coverage ──
+export class WordPicker {
+  private used = new Set<string>();
+  private unitCounts = new Map<number, number>();
+
+  /** Reset used-word tracking (call when loading a new level). */
+  reset(): void {
+    this.used.clear();
+    this.unitCounts.clear();
+  }
+
+  /**
+   * Pick a word from the level pool, avoiding repeats and balancing across units.
+   * When almost all words in the pool have been used, it auto-resets.
+   */
+  pick(levelIndex: number, wordMode: WordMode, difficulty?: WordDifficulty): string {
+    const pool = levelWordPool(levelIndex, wordMode);
+
+    // Exclude already-used words
+    let available = pool.filter((w) => !this.used.has(w));
+
+    // Auto-reset when running out of fresh words
+    if (available.length < 3) {
+      this.used.clear();
+      available = pool;
+    }
+
+    // Determine which real units (1-6) have been picked the least
+    const realUnits = [1, 2, 3, 4, 5, 6];
+    const minCount = Math.min(...realUnits.map((u) => this.unitCounts.get(u) ?? 0));
+    const targetUnits = new Set(realUnits.filter((u) => (this.unitCounts.get(u) ?? 0) === minCount));
+
+    // Try to pick from least-used units first
+    const fromTargetUnits = available.filter((w) => {
+      const u = getWordUnit(w);
+      return u > 0 && targetUnits.has(u);
+    });
+
+    let source = fromTargetUnits.length > 0 ? fromTargetUnits : available;
+
+    // Apply difficulty preference: 60% chance to narrow to matching difficulty
+    if (difficulty) {
+      const preferred = source.filter((w) => {
+        if (difficulty === "easy") return easyWords.includes(w);
+        if (difficulty === "medium") return mediumWords.includes(w) || easySentences.includes(w);
+        return hardSentences.includes(w) || easySentences.includes(w);
+      });
+      if (preferred.length > 0 && Math.random() < 0.6) {
+        source = preferred;
+      }
+    }
+
+    const word = source[Math.floor(Math.random() * source.length)];
+
+    // Track
+    this.used.add(word);
+    const unit = getWordUnit(word);
+    if (unit > 0) {
+      this.unitCounts.set(unit, (this.unitCounts.get(unit) ?? 0) + 1);
+    }
+
+    return word;
+  }
 }
 
 export function pickWordForLevel(levelIndex: number, wordMode: WordMode, difficulty?: WordDifficulty): string {
@@ -246,103 +321,110 @@ export function pickWordForLevel(levelIndex: number, wordMode: WordMode, difficu
   if (!difficulty) {
     return pool[Math.floor(Math.random() * pool.length)];
   }
-  return pickFromPool(pool, difficulty);
+  // Fallback simple pick (used by legacy code paths)
+  const preferred = pool.filter((w) => {
+    if (difficulty === "easy") return easyWords.includes(w);
+    if (difficulty === "medium") return mediumWords.includes(w) || easySentences.includes(w);
+    return hardSentences.includes(w) || easySentences.includes(w);
+  });
+  const source = preferred.length > 0 && Math.random() < 0.6 ? preferred : pool;
+  return source[Math.floor(Math.random() * source.length)];
 }
 
 const levelFiveMinerals: LevelConfig["minerals"] = [
-  { typeId: "largeGold", x: 155, y: 410, radius: 52, label: "classroom" },
-  { typeId: "diamond", x: 365, y: 400, radius: 23, label: "It's spring." },
-  { typeId: "smallGold", x: 720, y: 430, radius: 36, label: "pencil" },
-  { typeId: "ruby", x: 535, y: 475, radius: 18, label: "I can sing and dance." },
+  { typeId: "largeGold", x: 155, y: 410, radius: 52, label: "by bus" },
+  { typeId: "diamond", x: 365, y: 400, radius: 23, label: "I go to the zoo." },
+  { typeId: "smallGold", x: 720, y: 430, radius: 36, label: "pen" },
+  { typeId: "ruby", x: 535, y: 475, radius: 18, label: "I like Chinese and PE." },
   { typeId: "largeGold", x: 905, y: 400, radius: 50, label: "teacher" },
-  { typeId: "rock", x: 250, y: 620, radius: 48, label: "strong" },
-  { typeId: "ruby", x: 455, y: 625, radius: 18, label: "The room is clean." },
-  { typeId: "largeGold", x: 640, y: 555, radius: 52, label: "blackboard" },
-  { typeId: "diamond", x: 855, y: 610, radius: 23, label: "I go to school by bus." },
-  { typeId: "diamond", x: 1035, y: 365, radius: 23, label: "Let's make a kite." },
+  { typeId: "rock", x: 250, y: 620, radius: 48, label: "student" },
+  { typeId: "ruby", x: 455, y: 625, radius: 18, label: "My farm has trees and grass." },
+  { typeId: "largeGold", x: 640, y: 555, radius: 52, label: "Chinese" },
+  { typeId: "diamond", x: 855, y: 610, radius: 23, label: "I go to school by car." },
+  { typeId: "diamond", x: 1035, y: 365, radius: 23, label: "Let's go to the zoo on Saturday." },
   { typeId: "amethyst", x: 1110, y: 635, radius: 22, label: "This is my father. He is a driver." },
   { typeId: "explosiveBarrel", x: 990, y: 455, radius: 34, label: "danger" },
-  { typeId: "rock", x: 1040, y: 585, radius: 44, label: "beautiful" },
+  { typeId: "rock", x: 1040, y: 585, radius: 44, label: "great" },
   { typeId: "largeGold", x: 1165, y: 470, radius: 50, label: "Chinese" },
 ];
 
 const levelSevenMinerals: LevelConfig["minerals"] = [
-  { typeId: "largeGold", x: 150, y: 410, radius: 52, label: "classroom" },
+  { typeId: "largeGold", x: 150, y: 410, radius: 52, label: "by bus" },
   { typeId: "mysteryBag", x: 330, y: 455, radius: 34, label: "mystery" },
-  { typeId: "crystal", x: 520, y: 410, radius: 24, label: "It's yummy." },
-  { typeId: "ruby", x: 715, y: 455, radius: 18, label: "I like spring." },
-  { typeId: "diamond", x: 935, y: 420, radius: 23, label: "Touch your head." },
-  { typeId: "rock", x: 245, y: 620, radius: 46, label: "strong" },
-  { typeId: "amethyst", x: 455, y: 620, radius: 22, label: "The room is clean." },
-  { typeId: "mysteryBag", x: 650, y: 585, radius: 34, label: "lucky" },
+  { typeId: "crystal", x: 520, y: 410, radius: 24, label: "It has some trees." },
+  { typeId: "ruby", x: 715, y: 455, radius: 18, label: "What can you do?" },
+  { typeId: "diamond", x: 935, y: 420, radius: 23, label: "I can play football well." },
+  { typeId: "rock", x: 245, y: 620, radius: 46, label: "student" },
+  { typeId: "amethyst", x: 455, y: 620, radius: 22, label: "My farm has trees and grass." },
+  { typeId: "mysteryBag", x: 650, y: 585, radius: 34, label: "welcome" },
   { typeId: "largeGold", x: 840, y: 610, radius: 52, label: "teacher" },
   { typeId: "explosiveBarrel", x: 990, y: 475, radius: 34, label: "danger" },
-  { typeId: "crystal", x: 1100, y: 610, radius: 24, label: "Let's make a card." },
-  { typeId: "rock", x: 1160, y: 470, radius: 44, label: "beautiful" },
+  { typeId: "crystal", x: 1100, y: 610, radius: 24, label: "Let's draw pictures on Thursday." },
+  { typeId: "rock", x: 1160, y: 470, radius: 44, label: "great" },
 ];
 
 const levelEightMinerals: LevelConfig["minerals"] = [
-  { typeId: "moleBag", x: 165, y: 425, radius: 36, label: "move", motion: { minX: 90, maxX: 360, speed: 70, direction: 1 } },
-  { typeId: "mysteryBag", x: 360, y: 450, radius: 34, label: "lucky" },
-  { typeId: "crystal", x: 545, y: 415, radius: 24, label: "This is my room." },
+  { typeId: "moleBag", x: 165, y: 425, radius: 36, label: "sing", motion: { minX: 90, maxX: 360, speed: 70, direction: 1 } },
+  { typeId: "mysteryBag", x: 360, y: 450, radius: 34, label: "welcome" },
+  { typeId: "crystal", x: 545, y: 415, radius: 24, label: "This is my mum. She is a doctor." },
   { typeId: "diamond", x: 760, y: 430, radius: 23, label: "I can draw." },
-  { typeId: "ruby", x: 975, y: 425, radius: 18, label: "I want noodles." },
+  { typeId: "ruby", x: 975, y: 425, radius: 18, label: "Can I have some boxes?" },
   { typeId: "smallGold", x: 1120, y: 500, radius: 36, label: "bus" },
-  { typeId: "rock", x: 245, y: 620, radius: 48, label: "pretty" },
-  { typeId: "moleBag", x: 500, y: 620, radius: 36, label: "help", motion: { minX: 375, maxX: 700, speed: 86, direction: -1 } },
-  { typeId: "amethyst", x: 725, y: 610, radius: 22, label: "I go to school by bus." },
-  { typeId: "mysteryBag", x: 915, y: 600, radius: 34, label: "sweet" },
+  { typeId: "rock", x: 245, y: 620, radius: 48, label: "great" },
+  { typeId: "moleBag", x: 500, y: 620, radius: 36, label: "dance", motion: { minX: 375, maxX: 700, speed: 86, direction: -1 } },
+  { typeId: "amethyst", x: 725, y: 610, radius: 22, label: "I go to school by car." },
+  { typeId: "mysteryBag", x: 915, y: 600, radius: 34, label: "draw pictures" },
   { typeId: "explosiveBarrel", x: 1035, y: 500, radius: 34, label: "danger" },
-  { typeId: "rock", x: 1130, y: 620, radius: 46, label: "season" },
+  { typeId: "rock", x: 1130, y: 620, radius: 46, label: "every day" },
 ];
 
 const levelNineMinerals: LevelConfig["minerals"] = [
-  { typeId: "emerald", x: 150, y: 425, radius: 22, label: "This is my classroom." },
+  { typeId: "emerald", x: 150, y: 425, radius: 22, label: "This is my week. On Monday, I have Chinese, PE, English and maths." },
   { typeId: "sapphire", x: 330, y: 455, radius: 22, label: "I can play football." },
-  { typeId: "crystal", x: 520, y: 410, radius: 24, label: "Show me your kite." },
-  { typeId: "mysteryBag", x: 705, y: 455, radius: 34, label: "lucky" },
-  { typeId: "moleBag", x: 930, y: 420, radius: 36, label: "dance", motion: { minX: 790, maxX: 1160, speed: 92, direction: 1 } },
-  { typeId: "diamond", x: 1120, y: 510, radius: 23, label: "Let's make a kite." },
-  { typeId: "rock", x: 240, y: 610, radius: 48, label: "angry" },
-  { typeId: "amethyst", x: 450, y: 625, radius: 22, label: "The sheep is on the grass." },
-  { typeId: "largeGold", x: 635, y: 585, radius: 50, label: "mother" },
+  { typeId: "crystal", x: 520, y: 410, radius: 24, label: "Can I have some coloured paper?" },
+  { typeId: "mysteryBag", x: 705, y: 455, radius: 34, label: "welcome" },
+  { typeId: "moleBag", x: 930, y: 420, radius: 36, label: "jump", motion: { minX: 790, maxX: 1160, speed: 92, direction: 1 } },
+  { typeId: "diamond", x: 1120, y: 510, radius: 23, label: "Let's play football on Friday." },
+  { typeId: "rock", x: 240, y: 610, radius: 48, label: "student" },
+  { typeId: "amethyst", x: 450, y: 625, radius: 22, label: "My farm has trees and grass." },
+  { typeId: "largeGold", x: 635, y: 585, radius: 50, label: "mum" },
   { typeId: "emerald", x: 835, y: 620, radius: 22, label: "This is my father. He is a driver." },
   { typeId: "explosiveBarrel", x: 995, y: 480, radius: 34, label: "danger" },
   { typeId: "sapphire", x: 1120, y: 640, radius: 22, label: "This is my mother. She is a doctor." },
-  { typeId: "rock", x: 1185, y: 445, radius: 44, label: "clean" },
+  { typeId: "rock", x: 1185, y: 445, radius: 44, label: "great" },
 ];
 
 const levelTenMinerals: LevelConfig["minerals"] = [
-  { typeId: "sapphire", x: 165, y: 425, radius: 22, label: "I go to school by bus." },
-  { typeId: "mysteryBag", x: 330, y: 455, radius: 34, label: "lucky" },
-  { typeId: "rock", x: 520, y: 410, radius: 48, label: "strong" },
-  { typeId: "emerald", x: 700, y: 450, radius: 22, label: "The room is tidy." },
-  { typeId: "moleBag", x: 935, y: 425, radius: 36, label: "kick", motion: { minX: 800, maxX: 1170, speed: 105, direction: -1 } },
+  { typeId: "sapphire", x: 165, y: 425, radius: 22, label: "I go to school by car." },
+  { typeId: "mysteryBag", x: 330, y: 455, radius: 34, label: "welcome" },
+  { typeId: "rock", x: 520, y: 410, radius: 48, label: "student" },
+  { typeId: "emerald", x: 700, y: 450, radius: 22, label: "But I have PE. I don't like it." },
+  { typeId: "moleBag", x: 935, y: 425, radius: 36, label: "swim", motion: { minX: 800, maxX: 1170, speed: 105, direction: -1 } },
   { typeId: "explosiveBarrel", x: 1090, y: 510, radius: 34, label: "danger" },
-  { typeId: "crystal", x: 245, y: 615, radius: 24, label: "I can sing and dance." },
-  { typeId: "rock", x: 455, y: 625, radius: 48, label: "beautiful" },
-  { typeId: "amethyst", x: 645, y: 585, radius: 22, label: "I like winter." },
-  { typeId: "mysteryBag", x: 835, y: 620, radius: 34, label: "sweet" },
-  { typeId: "diamond", x: 995, y: 465, radius: 23, label: "Let's make a card." },
-  { typeId: "rock", x: 1130, y: 635, radius: 46, label: "season" },
+  { typeId: "crystal", x: 245, y: 615, radius: 24, label: "I like Chinese and PE." },
+  { typeId: "rock", x: 455, y: 625, radius: 48, label: "great" },
+  { typeId: "amethyst", x: 645, y: 585, radius: 22, label: "What can he do? He can draw." },
+  { typeId: "mysteryBag", x: 835, y: 620, radius: 34, label: "draw pictures" },
+  { typeId: "diamond", x: 995, y: 465, radius: 23, label: "Let's go to the zoo on Saturday." },
+  { typeId: "rock", x: 1130, y: 635, radius: 46, label: "every day" },
   { typeId: "explosiveBarrel", x: 1190, y: 480, radius: 34, label: "danger" },
 ];
 
 const levelElevenMinerals: LevelConfig["minerals"] = [
-  { typeId: "emerald", x: 150, y: 430, radius: 22, label: "This is my room." },
-  { typeId: "sapphire", x: 325, y: 455, radius: 22, label: "This is my classroom." },
-  { typeId: "rock", x: 505, y: 420, radius: 50, label: "strong" },
-  { typeId: "crystal", x: 700, y: 450, radius: 24, label: "I can see sheep." },
-  { typeId: "moleBag", x: 930, y: 425, radius: 36, label: "move", motion: { minX: 780, maxX: 1175, speed: 116, direction: 1 } },
+  { typeId: "emerald", x: 150, y: 430, radius: 22, label: "Saturday and Sunday, time to play!" },
+  { typeId: "sapphire", x: 325, y: 455, radius: 22, label: "This is my week. On Monday, I have Chinese, PE, English and maths." },
+  { typeId: "rock", x: 505, y: 420, radius: 50, label: "student" },
+  { typeId: "crystal", x: 700, y: 450, radius: 24, label: "My farm has trees and grass." },
+  { typeId: "moleBag", x: 930, y: 425, radius: 36, label: "kick", motion: { minX: 780, maxX: 1175, speed: 116, direction: 1 } },
   { typeId: "explosiveBarrel", x: 1100, y: 500, radius: 34, label: "danger" },
-  { typeId: "mysteryBag", x: 245, y: 610, radius: 34, label: "lucky" },
-  { typeId: "diamond", x: 430, y: 625, radius: 23, label: "Let's make a kite." },
-  { typeId: "amethyst", x: 620, y: 590, radius: 22, label: "The chicken is on the farm." },
-  { typeId: "rock", x: 820, y: 615, radius: 50, label: "pretty" },
-  { typeId: "ruby", x: 990, y: 610, radius: 18, label: "I want an apple." },
+  { typeId: "mysteryBag", x: 245, y: 610, radius: 34, label: "welcome" },
+  { typeId: "diamond", x: 430, y: 625, radius: 23, label: "Let's go to the zoo on Saturday." },
+  { typeId: "amethyst", x: 620, y: 590, radius: 22, label: "Let's feed the cows and sheep!" },
+  { typeId: "rock", x: 820, y: 615, radius: 50, label: "great" },
+  { typeId: "ruby", x: 990, y: 610, radius: 18, label: "Can I have some boxes?" },
   { typeId: "sapphire", x: 1110, y: 635, radius: 22, label: "This is my mother. She is a doctor." },
   { typeId: "explosiveBarrel", x: 1180, y: 470, radius: 34, label: "danger" },
-  { typeId: "moleBag", x: 615, y: 500, radius: 36, label: "turn", motion: { minX: 420, maxX: 760, speed: 95, direction: -1 } },
+  { typeId: "moleBag", x: 615, y: 500, radius: 36, label: "draw", motion: { minX: 420, maxX: 760, speed: 95, direction: -1 } },
 ];
 
 export const config: GameConfig = {
@@ -407,32 +489,32 @@ export const config: GameConfig = {
       wordMode: "words",
       shopItems: ["dynamite", "strengthWater", "clover"],
       minerals: [
-        { typeId: "smallGold", x: 170, y: 430, radius: 36, label: "book" },
+        { typeId: "smallGold", x: 170, y: 430, radius: 36, label: "bus" },
         { typeId: "largeGold", x: 390, y: 460, radius: 52, label: "teacher" },
-        { typeId: "smallGold", x: 720, y: 430, radius: 38, label: "pencil" },
-        { typeId: "largeGold", x: 610, y: 585, radius: 52, label: "classroom" },
-        { typeId: "smallGold", x: 930, y: 610, radius: 36, label: "desk" },
+        { typeId: "smallGold", x: 720, y: 430, radius: 38, label: "pen" },
+        { typeId: "largeGold", x: 610, y: 585, radius: 52, label: "Chinese" },
+        { typeId: "smallGold", x: 930, y: 610, radius: 36, label: "maths" },
         { typeId: "largeGold", x: 1100, y: 500, radius: 50, label: "school" },
-        { typeId: "largeGold", x: 250, y: 610, radius: 50, label: "seven" },
-        { typeId: "smallGold", x: 840, y: 510, radius: 38, label: "chair" },
+        { typeId: "largeGold", x: 250, y: 610, radius: 50, label: "Monday" },
+        { typeId: "smallGold", x: 840, y: 510, radius: 38, label: "music" },
       ],
     },
     {
       id: 2,
       name: "石头出现",
       durationSeconds: 60,
-      targetGold: 850,
+      targetGold: 1000,
       wordMode: "words",
       shopItems: ["dynamite", "strengthWater", "clover"],
       minerals: [
         { typeId: "largeGold", x: 165, y: 430, radius: 52, label: "window" },
-        { typeId: "rock", x: 360, y: 410, radius: 46, label: "strong" },
-        { typeId: "smallGold", x: 740, y: 440, radius: 38, label: "apple" },
-        { typeId: "largeGold", x: 620, y: 560, radius: 52, label: "mother" },
-        { typeId: "rock", x: 260, y: 620, radius: 48, label: "beautiful" },
-        { typeId: "smallGold", x: 910, y: 610, radius: 38, label: "cake" },
-        { typeId: "largeGold", x: 1110, y: 595, radius: 50, label: "father" },
-        { typeId: "largeGold", x: 485, y: 600, radius: 50, label: "football" },
+        { typeId: "rock", x: 360, y: 410, radius: 46, label: "student" },
+        { typeId: "smallGold", x: 740, y: 440, radius: 38, label: "orange" },
+        { typeId: "largeGold", x: 620, y: 560, radius: 52, label: "mum" },
+        { typeId: "rock", x: 260, y: 620, radius: 48, label: "great" },
+        { typeId: "smallGold", x: 910, y: 610, radius: 38, label: "paper" },
+        { typeId: "largeGold", x: 1110, y: 595, radius: 50, label: "dad" },
+        { typeId: "largeGold", x: 485, y: 600, radius: 50, label: "play football" },
         { typeId: "largeGold", x: 950, y: 440, radius: 50, label: "doctor" },
         { typeId: "smallGold", x: 1045, y: 505, radius: 38, label: "nurse" },
       ],
@@ -441,49 +523,49 @@ export const config: GameConfig = {
       id: 3,
       name: "钻石关",
       durationSeconds: 60,
-      targetGold: 1300,
+      targetGold: 1800,
       wordMode: "mixed",
       shopItems: ["dynamite", "strengthWater", "clover"],
       minerals: [
-        { typeId: "largeGold", x: 165, y: 430, radius: 52, label: "blackboard" },
-        { typeId: "diamond", x: 365, y: 405, radius: 45, label: "It's spring." },
-        { typeId: "rock", x: 760, y: 420, radius: 48, label: "yummy" },
+        { typeId: "largeGold", x: 165, y: 430, radius: 52, label: "by bus" },
+        { typeId: "diamond", x: 365, y: 405, radius: 45, label: "I go to the zoo." },
+        { typeId: "rock", x: 760, y: 420, radius: 48, label: "welcome" },
         { typeId: "largeGold", x: 620, y: 550, radius: 52, label: "Chinese" },
-        { typeId: "rock", x: 260, y: 620, radius: 48, label: "pretty" },
-        { typeId: "smallGold", x: 455, y: 630, radius: 38, label: "kite" },
-        { typeId: "diamond", x: 860, y: 610, radius: 43, label: "I can sing and dance." },
+        { typeId: "rock", x: 260, y: 620, radius: 48, label: "great" },
+        { typeId: "smallGold", x: 455, y: 630, radius: 38, label: "pen" },
+        { typeId: "diamond", x: 860, y: 610, radius: 43, label: "I like Chinese and PE." },
         { typeId: "largeGold", x: 1110, y: 635, radius: 50, label: "farmer" },
-        { typeId: "largeGold", x: 520, y: 465, radius: 50, label: "noodle" },
+        { typeId: "largeGold", x: 520, y: 465, radius: 50, label: "orange" },
         { typeId: "largeGold", x: 945, y: 430, radius: 50, label: "worker" },
-        { typeId: "largeGold", x: 1005, y: 535, radius: 50, label: "season" },
+        { typeId: "largeGold", x: 1005, y: 535, radius: 50, label: "every day" },
       ],
     },
     {
       id: 4,
       name: "炸药桶",
       durationSeconds: 60,
-      targetGold: 1600,
+      targetGold: 2200,
       wordMode: "mixed",
       shopItems: ["dynamite", "strengthWater", "clover"],
       minerals: [
-        { typeId: "largeGold", x: 155, y: 420, radius: 52, label: "dinner" },
-        { typeId: "diamond", x: 365, y: 400, radius: 45, label: "I go to school by bus." },
-        { typeId: "rock", x: 750, y: 420, radius: 46, label: "amazing" },
+        { typeId: "largeGold", x: 155, y: 420, radius: 52, label: "grandpa" },
+        { typeId: "diamond", x: 365, y: 400, radius: 45, label: "I go to school by car." },
+        { typeId: "rock", x: 750, y: 420, radius: 46, label: "student" },
         { typeId: "explosiveBarrel", x: 965, y: 455, radius: 34, label: "danger" },
-        { typeId: "largeGold", x: 620, y: 555, radius: 52, label: "thank" },
-        { typeId: "rock", x: 260, y: 620, radius: 48, label: "lucky" },
-        { typeId: "diamond", x: 850, y: 610, radius: 43, label: "The sheep is on the grass." },
-        { typeId: "largeGold", x: 1110, y: 635, radius: 50, label: "sweet" },
-        { typeId: "diamond", x: 535, y: 465, radius: 43, label: "Let's make a card." },
-        { typeId: "largeGold", x: 690, y: 610, radius: 50, label: "clean" },
-        { typeId: "largeGold", x: 1105, y: 505, radius: 50, label: "tidy" },
+        { typeId: "largeGold", x: 620, y: 555, radius: 52, label: "Thank you" },
+        { typeId: "rock", x: 260, y: 620, radius: 48, label: "welcome" },
+        { typeId: "diamond", x: 850, y: 610, radius: 43, label: "My farm has trees and grass." },
+        { typeId: "largeGold", x: 1110, y: 635, radius: 50, label: "draw pictures" },
+        { typeId: "diamond", x: 535, y: 465, radius: 43, label: "This is my mum. She is a doctor." },
+        { typeId: "largeGold", x: 690, y: 610, radius: 50, label: "great" },
+        { typeId: "largeGold", x: 1105, y: 505, radius: 50, label: "sorry" },
       ],
     },
     {
       id: 5,
       name: "宝石关",
-      durationSeconds: 60,
-      targetGold: 2200,
+      durationSeconds: 55,
+      targetGold: 3300,
       wordMode: "mixed",
       shopItems: ["dynamite", "strengthWater", "clover"],
       minerals: levelFiveMinerals,
@@ -491,8 +573,8 @@ export const config: GameConfig = {
     {
       id: 6,
       name: "限时挑战",
-      durationSeconds: 45,
-      targetGold: 2600,
+      durationSeconds: 40,
+      targetGold: 3800,
       wordMode: "mixed",
       shopItems: ["dynamite", "strengthWater", "clover"],
       minerals: levelFiveMinerals,
@@ -500,8 +582,8 @@ export const config: GameConfig = {
     {
       id: 7,
       name: "神秘矿洞",
-      durationSeconds: 60,
-      targetGold: 3100,
+      durationSeconds: 55,
+      targetGold: 4600,
       wordMode: "mixed",
       shopItems: ["dynamite", "strengthWater", "clover"],
       minerals: levelSevenMinerals,
@@ -509,8 +591,8 @@ export const config: GameConfig = {
     {
       id: 8,
       name: "背袋鼹鼠",
-      durationSeconds: 55,
-      targetGold: 3600,
+      durationSeconds: 50,
+      targetGold: 5200,
       wordMode: "mixed",
       shopItems: ["dynamite", "strengthWater", "clover"],
       minerals: levelEightMinerals,
@@ -518,8 +600,8 @@ export const config: GameConfig = {
     {
       id: 9,
       name: "地心世界",
-      durationSeconds: 55,
-      targetGold: 4300,
+      durationSeconds: 50,
+      targetGold: 6500,
       wordMode: "mixed",
       backgroundKey: "core",
       shopItems: ["dynamite", "strengthWater", "clover"],
@@ -528,8 +610,8 @@ export const config: GameConfig = {
     {
       id: 10,
       name: "高温矿脉",
-      durationSeconds: 55,
-      targetGold: 5000,
+      durationSeconds: 45,
+      targetGold: 7500,
       wordMode: "mixed",
       backgroundKey: "core",
       heatPullMultiplier: 0.72,
@@ -540,8 +622,8 @@ export const config: GameConfig = {
     {
       id: 11,
       name: "终极挑战",
-      durationSeconds: 45,
-      targetGold: 5600,
+      durationSeconds: 40,
+      targetGold: 9000,
       wordMode: "mixed",
       backgroundKey: "core",
       heatPullMultiplier: 0.72,

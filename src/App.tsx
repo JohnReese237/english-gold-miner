@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { config, BackgroundKey, GameState, ItemId, LevelConfig, MineralInstance, MineralShape, pickWordForLevel, mineralDifficulty } from "./config";
+import { config, BackgroundKey, GameState, ItemId, LevelConfig, MineralInstance, MineralShape, WordPicker, mineralDifficulty } from "./config";
 import { initAudioOnInteraction, playClick, playCollect, playExplosion, playFail, playHit, playItemUse, playLaunch, playLevelComplete, playShopBuy, setMasterVolume, startMusic, stopMusic } from "./audio";
 
 interface HookState {
@@ -385,6 +385,7 @@ function App() {
   const nextThiefSideRef = useRef<"left" | "right">("left");
   const lastActionExpiresAtRef = useRef(0);
   const moleStruggleProgressRef = useRef(0);
+  const wordPickerRef = useRef(new WordPicker());
 
   const [gameState, setGameStateValue] = useState<GameState>("ready");
   const [levelIndex, setLevelIndex] = useState(0);
@@ -500,10 +501,6 @@ function App() {
     };
   }, []);
 
-  const pickWord = useCallback((level: LevelConfig, difficulty?: "easy" | "medium" | "hard") => {
-    return pickWordForLevel(levelIndexRef.current, level.wordMode, difficulty);
-  }, []);
-
   const scoreFor = useCallback((mineral: MineralInstance) => {
     const type = mineralById(mineral.typeId);
     if (type.category === "explosive") return 0;
@@ -539,7 +536,8 @@ function App() {
       setHeatShieldActive(false);
       nextThiefAtRef.current = 0;
       nextThiefSideRef.current = "left";
-      setTargetWord(pickWord(nextLevel));
+      wordPickerRef.current.reset();
+      setTargetWord(wordPickerRef.current.pick(nextLevelIndex, nextLevel.wordMode));
       setMineralsVersion((value) => value + 1);
       setLastAction("");
       levelStartSnapshotRef.current = {
@@ -548,7 +546,7 @@ function App() {
       };
       setGameState("levelIntro");
     },
-    [pickWord, setGameState],
+    [setGameState],
   );
 
   const resetToLevel = (nextLevelIndex: number) => {
@@ -1064,7 +1062,7 @@ function App() {
       const tick = Math.floor(elapsed / 80);
       if (tick !== wordShuffleTickRef.current) {
         wordShuffleTickRef.current = tick;
-        const shuffled = pickWord(level);
+        const shuffled = wordPickerRef.current.pick(levelIndexRef.current, level.wordMode);
         targetWordRef.current = shuffled;
         setTargetWord(shuffled);
         if (hookedMineralRef.current) {
@@ -1075,7 +1073,7 @@ function App() {
       }
       if (elapsed >= config.timing.wordShuffleMs) {
         const hookedType = hookedMineralRef.current?.typeId;
-        const finalWord = pickWord(level, hookedType ? mineralDifficulty(hookedType) : undefined);
+        const finalWord = wordPickerRef.current.pick(levelIndexRef.current, level.wordMode, hookedType ? mineralDifficulty(hookedType) : undefined);
         targetWordRef.current = finalWord;
         setTargetWord(finalWord);
         if (hookedMineralRef.current) {
